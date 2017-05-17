@@ -7,15 +7,15 @@ MetaLengthBuffer::MetaLengthBuffer(string fileName) : FileStream() {
 		exit(1);
 	}
 	mUnpackCount = 0;
-
-	mBuffer.push_back("hilskdfdf");
-	mBuffer.push_back("wwdsdf");
-	mBuffer.push_back("hilssdfsddfkdfdf");
-	mBuffer.push_back("2323");
+	mFieldBufPoolSize = 0;
+	mReadPos = 0;
+	mWritePos = 0;
 }
 
 MetaLengthBuffer::~MetaLengthBuffer() {
 	mStream.close();
+	if (mFieldBufPool != NULL)
+		delete(mFieldBufPool);
 }
 
 void MetaLengthBuffer::Pack(string data) {
@@ -35,7 +35,7 @@ void MetaLengthBuffer::Write() {
 		cout << "ERROR: no elements in Write" << endl;
 	}
 
-	mStream.seekp(0, ios::end);
+	mStream.seekp(mWritePos);
 
 	int recSize = 0;
 	for (int i = 0; i < mBuffer.size(); i++) {
@@ -51,11 +51,11 @@ void MetaLengthBuffer::Write() {
 		mStream.write(mBuffer[i].c_str(), fieldSize);
 	}
 
+	mWritePos = mStream.tellp();
 	mBuffer.clear();
 }
 
 void MetaLengthBuffer::Read() {
-	streampos curSeek = mStream.tellg();
 	mStream.seekg(0, ios::end);
 
 	if (!mStream.tellg()) {
@@ -63,7 +63,7 @@ void MetaLengthBuffer::Read() {
 		return;
 	}
 
-	mStream.seekg(curSeek);
+	mStream.seekg(mReadPos);
 	mBuffer.clear();
 	
 	int recSize = 0;
@@ -71,15 +71,26 @@ void MetaLengthBuffer::Read() {
 	cout << recSize << endl;
 	
 	int fieldSize = 0;
-	char* str;
+	
 	for (int i = 0; recSize > 0; i++) {
 		mStream.read(reinterpret_cast<char*>(&fieldSize), sizeof(int));
-		str = new char[fieldSize];
-		mStream.read(str, fieldSize);
+		
+		// Field buffer pooling
+		if (fieldSize > mFieldBufPoolSize) {
+			if (mFieldBufPool != NULL) {
+				delete(mFieldBufPool);
+			}
+			mFieldBufPool = new char[fieldSize];
+			mFieldBufPoolSize = fieldSize;
+		}
 
-		mBuffer.push_back(str);
+		mStream.read(mFieldBufPool, fieldSize);
+
+		mBuffer.push_back(mFieldBufPool);
 		cout << "f : "<< mBuffer[i] << endl;
 		recSize -= (fieldSize + sizeof(int));
-		delete(str);
 	}
+
+	mReadPos = mStream.tellg();
+	mUnpackCount = 0;
 }

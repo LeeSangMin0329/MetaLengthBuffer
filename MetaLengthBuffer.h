@@ -7,6 +7,10 @@
 class MetaLengthBuffer : public FileStream {
 private:
 	int mUnpackCount;
+	char* mFieldBufPool;
+	int mFieldBufPoolSize;
+	streampos mReadPos;
+	streampos mWritePos;
 
 public:
 	MetaLengthBuffer(string fileName);
