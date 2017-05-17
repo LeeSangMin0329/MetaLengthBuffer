@@ -12,11 +12,11 @@ int main(void) {
 	Person s("±Ë≥≤øµ", "23", "≥≤");
 	Person m("¿ÃªÛπŒ", "23", "≥≤");
 	RecordFile rec(new MetaLengthBuffer("a.txt"));
-	rec.Write(s);
-	rec.Write(m);
+	rec.Write(s, 1);
+	//rec.Write(m, 1);
 	
 	Person x("", "", "");
-	rec.Read(x);
+	rec.Read(x, 0);
 	x.Print();
 
 	return 0;

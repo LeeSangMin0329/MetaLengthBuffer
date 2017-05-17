@@ -30,14 +30,21 @@ string MetaLengthBuffer::UnPack() {
 	return mBuffer[mUnpackCount++];
 }
 
-void MetaLengthBuffer::Write() {
+int MetaLengthBuffer::Write(int addr) {
 	if (mBuffer.empty()) {
 		cout << "ERROR: no elements in Write" << endl;
 	}
 
-	mStream.seekp(mWritePos);
-
 	int recSize = 0;
+	mStream.seekp(0, ios::beg);
+	mWritePos = 0;
+	for (int i = 0; i < addr; i++) {
+		mStream.read(reinterpret_cast<char*>(&recSize), sizeof(int));
+		mWritePos += recSize;
+		mStream.seekp(mWritePos);
+	}
+
+	recSize = sizeof(int);
 	for (int i = 0; i < mBuffer.size(); i++) {
 		recSize += mBuffer[i].size() + 1 + sizeof(int);
 	}
@@ -51,22 +58,32 @@ void MetaLengthBuffer::Write() {
 		mStream.write(mBuffer[i].c_str(), fieldSize);
 	}
 
-	mWritePos = mStream.tellp();
 	mBuffer.clear();
+	// 현재 파일 디스크립터 : 필드 기록후 8byte 이하 availlist 규칙을 따르려면 이대로 이 후 (int)-1 기록
+	//									8byte 이상 (int)쓰고 남은 공간 / (int)-1 , availlist 업데이트
+	return addr;
 }
 
-void MetaLengthBuffer::Read() {
+int MetaLengthBuffer::Read(int addr) {
 	mStream.seekg(0, ios::end);
 
 	if (!mStream.tellg()) {
 		cout << "ERROR: no data in file" << endl;
-		return;
+		return -1;
 	}
 
-	mStream.seekg(mReadPos);
+	int recSize = 0;
+	mStream.seekg(0, ios::beg);
+	mReadPos = 0;
+	for (int i = 0; i < addr; i++) {
+		mStream.read(reinterpret_cast<char*>(&recSize), sizeof(int));
+		mReadPos += recSize;
+		mStream.seekg(mReadPos);
+	}
+
 	mBuffer.clear();
 	
-	int recSize = 0;
+	recSize = 0;
 	mStream.read(reinterpret_cast<char*>(&recSize), sizeof(int));
 	cout << recSize << endl;
 	
@@ -75,6 +92,13 @@ void MetaLengthBuffer::Read() {
 	for (int i = 0; recSize > 0; i++) {
 		mStream.read(reinterpret_cast<char*>(&fieldSize), sizeof(int));
 		
+
+		// deleted record read
+		if (fieldSize == -1) {
+			cout << "deleted record" << endl;
+			break;
+		}
+
 		// Field buffer pooling
 		if (fieldSize > mFieldBufPoolSize) {
 			if (mFieldBufPool != NULL) {
@@ -87,10 +111,11 @@ void MetaLengthBuffer::Read() {
 		mStream.read(mFieldBufPool, fieldSize);
 
 		mBuffer.push_back(mFieldBufPool);
-		cout << "f : "<< mBuffer[i] << endl;
+		
 		recSize -= (fieldSize + sizeof(int));
 	}
 
-	mReadPos = mStream.tellg();
 	mUnpackCount = 0;
+
+	return addr;
 }
