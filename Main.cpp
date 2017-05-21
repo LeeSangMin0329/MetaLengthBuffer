@@ -10,13 +10,14 @@ int main(void) {
 	//m.Write();
 	//m.Read();
 	Person s("±Ë≥≤øµ", "23", "≥≤");
-	Person m("¿ÃªÛπŒ", "23", "≥≤");
+	Person m("¿Ã", "3", "≥≤");
 	RecordFile rec(new MetaLengthBuffer("a.txt"));
-	rec.Write(s, 1);
 	//rec.Write(m, 1);
-	
+	//rec.Write(m, 6);
+	//rec.Remove(6);
+
 	Person x("", "", "");
-	rec.Read(x, 0);
+	//rec.Read(x, 1);
 	x.Print();
 
 	return 0;

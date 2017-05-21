@@ -31,8 +31,9 @@ protected:
 public:
 	virtual void Pack(string data) = 0;
 	virtual string UnPack() = 0;
-	virtual int Write(int addr) = 0;
+	virtual int Write() = 0;
 	virtual int Read(int addr) = 0;
+	virtual int Remove(int addr) = 0;
 };
 
 #endif // !__FILESTREAM__

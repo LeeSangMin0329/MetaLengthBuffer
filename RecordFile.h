@@ -26,7 +26,8 @@ public:
 	RecordFile(FileStream* buffer);
 	int Read(recType& record, int recaddr = -1);
 	int Write(recType& record, int recaddr = -1);
-	int Append(const recType& record);
+	int Append(recType& record);
+	int Remove(int recaddr = -1);
 };
 
 #endif // !__RECORDFILE__
