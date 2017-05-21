@@ -128,15 +128,6 @@ int MetaLengthBuffer::Write() {
 
 	
 	int recSize = 0;
-	/*
-	mStream.seekp(0, ios::beg);
-	mWritePos = 0;
-	for (int i = 0; i < addr; i++) {
-		mStream.read(reinterpret_cast<char*>(&recSize), sizeof(int));
-		mWritePos += recSize;
-		mStream.seekp(mWritePos);
-	}
-	*/
 
 	recSize = sizeof(int);
 	for (int i = 0; i < mBuffer.size(); i++) {
