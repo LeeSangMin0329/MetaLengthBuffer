@@ -69,7 +69,7 @@ int MetaLengthBuffer::CheckWorstFit(int size) {
 		return -1; // go eof
 }
 
-int MetaLengthBuffer::Remove(int addr) {
+streampos MetaLengthBuffer::Remove(streampos addr) {
 	mStream.seekg(0, ios::end);
 
 	if (!mStream.tellg()) {
@@ -195,7 +195,7 @@ int MetaLengthBuffer::Write() {
 	return 0;
 }
 
-int MetaLengthBuffer::Read(int addr) {
+streampos MetaLengthBuffer::Read(streampos addr) {
 	mStream.seekg(0, ios::end);
 
 	if (!mStream.tellg()) {
@@ -204,6 +204,8 @@ int MetaLengthBuffer::Read(int addr) {
 	}
 
 	int recSize = 0;
+	
+	/*
 	mStream.seekg(0, ios::beg);
 	mReadPos = 0;
 	for (int i = 0; i < addr; i++) {
@@ -211,6 +213,9 @@ int MetaLengthBuffer::Read(int addr) {
 		mReadPos += recSize;
 		mStream.seekg(mReadPos);
 	}
+	*/
+	mReadPos = addr;
+	mStream.seekg(mReadPos);
 
 	mBuffer.clear();
 	

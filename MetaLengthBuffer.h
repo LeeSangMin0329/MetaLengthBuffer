@@ -35,8 +35,8 @@ public:
 	void Pack(string data);
 	string UnPack();
 	int Write();
-	int Read(int addr);
-	int Remove(int addr);
+	streampos Read(streampos addr);
+	streampos Remove(streampos addr);
 };
 
 

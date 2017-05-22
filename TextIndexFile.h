@@ -7,27 +7,29 @@
 #include "recType.h"
 #include "RecordFile.h"
 #include "MetaLengthBuffer.h"
+#include "TextIndexBuffer.h"
 
 using namespace std;
 
-class IndexElement {
-public:
-	string field;
-	streampos addr;
-};
 
 class TextIndexFile {
 private:
 	vector<IndexElement> mIndexVector;
-	RecordFile* mRecordFile;
+	
+	fstream mIndexStream;
 
-	void WriteIndex();
-	void ReadIndex();
+	RecordFile* mRecordFile;
+	TextIndexBuffer* mTextIndexBuffer;
 
 public:
+	TextIndexFile(string indexFileName, string recordFileName);
+	~TextIndexFile();
+
 	void Read(string key);
 	void Remove(string key);
 	void Append(recType* record, string key);
+
+	void PrintIndex();
 	
 
 };
