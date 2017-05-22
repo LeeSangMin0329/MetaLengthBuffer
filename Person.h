@@ -38,8 +38,8 @@ void Person::UnPack(FileStream* f) {
 }
 
 void Person::Print() {
-	cout << "name : " << name << endl;
-	cout << "age : " << age << endl;
-	cout << "sex : " << sex << endl;
+	cout << "Name :\t" << name << endl;
+	cout << "Age :\t" << age << endl;
+	cout << "Sex :\t" << sex << endl;
 }
 #endif // !__PERSON__

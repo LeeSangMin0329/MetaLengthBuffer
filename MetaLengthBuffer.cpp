@@ -26,6 +26,8 @@ void MetaLengthBuffer::MakeAvaliList() {
 	streampos eof = mStream.tellg();
 	mStream.seekg(0, ios::beg);
 
+	cout << "SYSTEM: Print Record storage" << endl;
+
 	while (mReadPos < eof) {
 		mStream.read(reinterpret_cast<char*>(&recSize), sizeof(int));
 		mStream.read(reinterpret_cast<char*>(&deleteCheck), sizeof(int));
@@ -34,16 +36,17 @@ void MetaLengthBuffer::MakeAvaliList() {
 			pk.addr = mReadPos;
 			pk.extraSpace = recSize;
 			mAvailList.push_front(pk);
-			cout << "Record " << recCount << "  "<< recSize<< " Deleted Record" << endl;
+			cout << "    Record :" << recCount << ",\tRecord Size :"<< recSize<< "\tDeleted Record" << endl;
 		}
 		else {
-			cout << "Record " << recCount << "  " << recSize << endl;
+			cout << "    Record :" << recCount << ",\tRecord SIze :" << recSize << endl;
 		}
 		recCount++;
 		mReadPos += recSize;
 		mStream.seekg(mReadPos);
 	}
 
+	mStream.flush();
 }
 
 int MetaLengthBuffer::CheckWorstFit(int size) {
@@ -63,7 +66,9 @@ int MetaLengthBuffer::CheckWorstFit(int size) {
 	
 	if (size == max)
 		return 1;
-	if (size < (max - sizeof(int)*2))  // write metadata space
+
+	// sizeof(int)*2 = minimum write metadata space so if extra space less than this, useless forever
+	if (size < (max - sizeof(int)*2))
 		return 0;
 	else
 		return -1; // go eof
@@ -78,13 +83,8 @@ streampos MetaLengthBuffer::Remove(streampos addr) {
 	}
 
 	int recSize = 0;
-	mStream.seekp(0, ios::beg);
-	mWritePos = 0;
-	for (int i = 0; i < addr; i++) {
-		mStream.read(reinterpret_cast<char*>(&recSize), sizeof(int));
-		mWritePos += recSize;
-		mStream.seekp(mWritePos);
-	}
+	mWritePos = addr;
+	mStream.seekg(mWritePos);
 
 	AvailPack pk;
 	pk.addr = mWritePos;
@@ -96,9 +96,11 @@ streampos MetaLengthBuffer::Remove(streampos addr) {
 	int fieldSize = -1;
 	mStream.write(reinterpret_cast<char*>(&fieldSize), sizeof(int));
 
+	mStream.flush();
+
 	mAvailList.push_front(pk);
 
-	cout << "SYSTEM: Record " << addr << " was removed" << endl;
+	cout << "SYSTEM: Record absolute addr " << addr << " was removed" << endl;
 
 	return addr;
 }
@@ -107,6 +109,10 @@ MetaLengthBuffer::~MetaLengthBuffer() {
 	mStream.close();
 	if (mFieldBufPool != NULL)
 		delete(mFieldBufPool);
+}
+
+void MetaLengthBuffer::BufferFlush() {
+	mBuffer.clear();
 }
 
 void MetaLengthBuffer::Pack(string data) {
@@ -121,7 +127,7 @@ string MetaLengthBuffer::UnPack() {
 	return mBuffer[mUnpackCount++];
 }
 
-int MetaLengthBuffer::Write() {
+streampos MetaLengthBuffer::Write() {
 	if (mBuffer.empty()) {
 		cout << "ERROR: no elements in Write" << endl;
 	}
@@ -135,7 +141,6 @@ int MetaLengthBuffer::Write() {
 	}
 	
 	int check = CheckWorstFit(recSize);
-	cout << check << endl;
 
 	if (check == 1) { // just size
 		mWritePos = (*mIter).addr;
@@ -151,10 +156,10 @@ int MetaLengthBuffer::Write() {
 			mStream.write(mBuffer[i].c_str(), fieldSize);
 		}
 
-		// iter delete
-		mIter = mAvailList.erase(mIter);
+		// iterator delete
+		mAvailList.erase(mIter);
 	}
-	else if (check == 0) {
+	else if (check == 0) { // extra space exist
 		mWritePos = (*mIter).addr;
 		mStream.seekp(mWritePos);
 
@@ -176,8 +181,9 @@ int MetaLengthBuffer::Write() {
 
 		(*mIter).extraSpace = recSize;
 	}
-	else {
+	else { // go eof
 		mStream.seekp(0, ios::end);
+		mWritePos = mStream.tellp();
 
 		mStream.write(reinterpret_cast<char*>(&recSize), sizeof(int));
 
@@ -189,10 +195,10 @@ int MetaLengthBuffer::Write() {
 		}
 	}
 
+	mStream.flush();
 	mBuffer.clear();
-	// 현재 파일 디스크립터 : 필드 기록후 8byte 이하 availlist 규칙을 따르려면 이대로 이 후 (int)-1 기록
-	//									8byte 이상 (int)쓰고 남은 공간 / (int)-1 , availlist 업데이트
-	return 0;
+
+	return mWritePos;
 }
 
 streampos MetaLengthBuffer::Read(streampos addr) {
@@ -204,16 +210,7 @@ streampos MetaLengthBuffer::Read(streampos addr) {
 	}
 
 	int recSize = 0;
-	
-	/*
-	mStream.seekg(0, ios::beg);
-	mReadPos = 0;
-	for (int i = 0; i < addr; i++) {
-		mStream.read(reinterpret_cast<char*>(&recSize), sizeof(int));
-		mReadPos += recSize;
-		mStream.seekg(mReadPos);
-	}
-	*/
+
 	mReadPos = addr;
 	mStream.seekg(mReadPos);
 
@@ -221,17 +218,15 @@ streampos MetaLengthBuffer::Read(streampos addr) {
 	
 	recSize = 0;
 	mStream.read(reinterpret_cast<char*>(&recSize), sizeof(int));
-	cout << recSize << endl;
 	
 	int fieldSize = 0;
-	
-	for (int i = 0; recSize > 0; i++) {
+	recSize -= sizeof(int);
+	while(recSize > 0) {
 		mStream.read(reinterpret_cast<char*>(&fieldSize), sizeof(int));
 		
-
 		// deleted record read
 		if (fieldSize == -1) {
-			cout << "SYSTEM: Record " << addr<< " was deleted record" << endl;
+			cout << "SYSTEM: Record addr " << addr<< " was deleted record" << endl;
 			return -1;
 		}
 
@@ -251,6 +246,7 @@ streampos MetaLengthBuffer::Read(streampos addr) {
 		recSize -= (fieldSize + sizeof(int));
 	}
 
+	mStream.flush();
 	mUnpackCount = 0;
 
 	return addr;

@@ -8,7 +8,7 @@
 class AvailPack {
 public:
 	streampos addr;
-	int extraSpace; // 지울때 4byte 읽은 그 길이 : 사용 가능 공간
+	int extraSpace;
 };
 
 class MetaLengthBuffer : public FileStream {
@@ -34,9 +34,10 @@ public:
 
 	void Pack(string data);
 	string UnPack();
-	int Write();
+	streampos Write();
 	streampos Read(streampos addr);
 	streampos Remove(streampos addr);
+	void BufferFlush();
 };
 
 

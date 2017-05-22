@@ -6,7 +6,7 @@
 // input mBuffer
 
 // UnPack
-// out put mBuffer 
+// output mBuffer 
 
 // Write
 // write record(mBuffer) use mStream
@@ -31,9 +31,10 @@ protected:
 public:
 	virtual void Pack(string data) = 0;
 	virtual string UnPack() = 0;
-	virtual int Write() = 0;
+	virtual streampos Write() = 0;
 	virtual streampos Read(streampos addr) = 0;
 	virtual streampos Remove(streampos addr) = 0;
+	virtual void BufferFlush() = 0;
 };
 
 #endif // !__FILESTREAM__

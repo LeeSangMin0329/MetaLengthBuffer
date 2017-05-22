@@ -1,7 +1,7 @@
 #pragma once
 
 // Buffered type Interface.
-// If you use MetaLengthBuffer, you must inheritance this class in type
+// If you use Buffer, you must inheritance this class in type
 
 // Pack
 // FileStream.Pack(string) and FileStream.Write()

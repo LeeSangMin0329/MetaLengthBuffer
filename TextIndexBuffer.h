@@ -12,19 +12,25 @@ public:
 class TextIndexBuffer : public FileStream{
 private:
 	vector<IndexElement>& mIndexVector;
+	int mIndexSize;
 
 	char* mFieldBufPool;
 	int mFieldBufPoolSize;
 
 public:
 	TextIndexBuffer(string indexFileName, vector<IndexElement>& index);
+	~TextIndexBuffer();
 
 	// Inheritance Virtual Method Area
 	void Pack(string data);
 	string UnPack();
-	int Write() { return 0; };
+	void BufferFlush();
+
+	// non use Inheritance Vitual Method Area
+	streampos Write() { return 0; };
 	streampos Read(streampos addr) { return 0; };
 	streampos Remove(streampos addr) { return 0; };
+	
 };
 
 

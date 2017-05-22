@@ -4,17 +4,22 @@ RecordFile::RecordFile(FileStream* buffer) {
 	mBuffer = buffer;
 }
 
-int RecordFile::Read(recType& record, int recaddr) {
-	if (recaddr == -1) {
+streampos RecordFile::Read(recType& record, streampos recaddr) {
+	if (static_cast<int>(recaddr) == -1) {
 		cout << "rack read addr info" << endl;
 		return -1;
 	}
-	if(mBuffer->Read(recaddr) > 0)
+	if(mBuffer->Read(recaddr) >= 0)
 		record.UnPack(mBuffer);
+	else {
+		cout << "ERROR: Record read Fail" << endl;
+		return -1;
+	}
 
 	return 0;
 }
 
+/* non use this program
 int RecordFile::Write(recType& record, int recaddr) {
 	if (recaddr == -1) {
 		cout << "rack write addr info" << endl;
@@ -24,15 +29,18 @@ int RecordFile::Write(recType& record, int recaddr) {
 	mBuffer->Write();
 	return 0;
 }
+*/
 
-int RecordFile::Append(recType& record) {
+streampos RecordFile::Append(recType& record) {
+	mBuffer->BufferFlush();
+
 	record.Pack(mBuffer);
-	mBuffer->Write();
-	return 0;
+	
+	return mBuffer->Write();
 }
 
-int RecordFile::Remove(int recaddr) {
-	if (recaddr == -1) {
+streampos RecordFile::Remove(streampos recaddr) {
+	if (static_cast<int>(recaddr) == -1) {
 		cout << "Invalied addr" << endl;
 		return recaddr;
 	}

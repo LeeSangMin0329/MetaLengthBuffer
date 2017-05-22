@@ -6,14 +6,29 @@ TextIndexBuffer::TextIndexBuffer(string indexFileName, vector<IndexElement>& ind
 		cout << "ERROR: Index open fail" << endl;
 		exit(1);
 	}
-
-	//mIndexVector = index;
+}
+TextIndexBuffer::~TextIndexBuffer() {
+	if (mFieldBufPool != NULL) {
+		delete(mFieldBufPool);
+	}
+	mStream.close();
 }
 
-// write index
+void TextIndexBuffer::BufferFlush() {
+	mIndexVector.clear();
+}
+
+// write index use fstream
 void TextIndexBuffer::Pack(string data) {
 	mStream.seekp(0, ios::beg);
+
 	int feildSize;
+	mIndexSize = sizeof(int);
+
+	for (int i = 0; i < mIndexVector.size(); i++) {
+		mIndexSize += sizeof(streampos) + mIndexVector[i].field.size() + 1;
+	}
+	mStream.write(reinterpret_cast<char*>(&mIndexSize), sizeof(int));
 
 	for (int i = 0; i < mIndexVector.size(); i++) {
 		feildSize = mIndexVector[i].field.size() + 1;
@@ -21,9 +36,10 @@ void TextIndexBuffer::Pack(string data) {
 		mStream.write(reinterpret_cast<char*>(&feildSize), sizeof(int));
 		mStream.write(mIndexVector[i].field.c_str(), feildSize);
 	}
+	mStream.flush();
 }
 
-// read index
+// read index use fsteam
 string TextIndexBuffer::UnPack() {
 	mStream.seekg(0, ios::end);
 	streampos eof = mStream.tellg();
@@ -36,9 +52,12 @@ string TextIndexBuffer::UnPack() {
 	}
 	mIndexVector.clear();
 
+	mStream.read(reinterpret_cast<char*>(&mIndexSize), sizeof(int));
+	readPos = mStream.tellg();
+
 	IndexElement element;
 	int fieldSize;
-	while (readPos < eof) {
+	while (readPos < mIndexSize) {
 		mStream.read(reinterpret_cast<char*>(&(element.addr)), sizeof(streampos));
 		mStream.read(reinterpret_cast<char*>(&fieldSize), sizeof(int));
 
@@ -54,8 +73,9 @@ string TextIndexBuffer::UnPack() {
 
 		mIndexVector.push_back(element);
 		readPos += sizeof(streampos) + sizeof(int) + fieldSize;
+		mStream.seekg(readPos);
 	}
-	
+	mStream.flush();
 	
 	return "";
 }
