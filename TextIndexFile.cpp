@@ -34,7 +34,7 @@ bool TextIndexFile::Read(recType& record, string key) {
 			return true;
 		}
 	}
-	cout << "SYSTEM: no result for search" << endl;
+	cout << "SYSTEM: ---- no result for search ----" << endl;
 	return false;
 }
 
@@ -53,7 +53,7 @@ void TextIndexFile::Remove(string key) {
 			return;
 		}
 	}
-	cout << "SYSTEM: no result for remove index" << endl;
+	cout << "SYSTEM: ---- no result for remove index ----" << endl;
 }
 
 void TextIndexFile::Append(recType& record, string key) {

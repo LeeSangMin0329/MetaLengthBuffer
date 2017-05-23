@@ -3,11 +3,16 @@
 // Buffered type Interface.
 // If you use Buffer, you must inheritance this class in type
 
-// Pack
-// FileStream.Pack(string) and FileStream.Write()
+/*
+class recType {
+public:
+	virtual void Pack(FileStream* f) = 0;
+	virtual void UnPack(FileStream* f) = 0;
+};
 
-// UnPack
-// FileStream.Read() and FileStream.UnPack()
+	- Pack 	  : Call 'f-> Pack (string field);' in the order that you want to put in the buffer.
+	- UnPack  : Call 'f-> UnPack ();' in the order you want to import in the buffer.
+*/
 
 #ifndef __RECTYPE__
 #define __RECTUPE__

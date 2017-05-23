@@ -13,7 +13,7 @@ bool compare(IndexElement a, IndexElement b) {
 
 int main(void) {
 	
-	TextIndexFile f("in.txt", "a.txt", compare);
+	TextIndexFile f("Index.dat", "Record.dat", compare);
 	Person p("", "", "");
 
 	string order;
@@ -24,10 +24,9 @@ int main(void) {
 		cout << "SYSTEM: input command" << endl;
 		cout << "SYSTEM: you select \"printindex\", \"append\", \"remove\" or \"read\"" << endl;
 		cout << endl;
-		cout << "SYSTEM: input : ";
+		cout << "SYSTEM: command : ";
 		cout.flush();
 		cin >> order;
-		fflush(stdin);
 
 		cout << endl;
 		if (order == "printindex") {
@@ -38,20 +37,16 @@ int main(void) {
 			cout << "SYSTEM: input name : ";
 			cout.flush();
 			cin >> p.name;
-			fflush(stdin);
 			cout << "SYSTEM: inpue age : ";
 			cout.flush();
 			cin >> p.age;
-			fflush(stdin);
 			cout << "SYSTEM: input sex : ";
 			cout.flush();
 			cin >> p.sex;
-			fflush(stdin);
 			while (true) {
-				cout << "SYSTEM: what is the key? : ";
+				cout << "SYSTEM: what is the key? { name, age, sex } : ";
 				cout.flush();
 				cin >> order;
-				fflush(stdin);
 				if (order == "name") {
 					f.Append(p, p.name);
 					break;
@@ -74,14 +69,12 @@ int main(void) {
 			cout << "SYSTEM: input key : ";
 			cout.flush();
 			cin >> order;
-			fflush(stdin);
 			f.Remove(order);
 		}
 		else if (order == "read") {
 			cout << "SYSTEM: input key : ";
 			cout.flush();
 			cin >> order;
-			fflush(stdin);
 			if(f.Read(p, order))
 				p.Print();
 		}
