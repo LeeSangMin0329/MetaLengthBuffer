@@ -34,13 +34,13 @@ The details of the IndexElement class are as follows :
 
 		bool Read(recType& record, string key);
 			- Store the read record in the record passed as parameter.
-			  Returns true if read was successful or false.
+			  Returns true if read was successful.
 
 		void Remove(string key);
 			- Find and remove records with the same key.
 
 		void Append(recType& record, string key);
-			- Store record and key received as parameter.
+			- Store record and key.
 
 		void PrintIndex();
 			- Print all existing indexes.
@@ -55,7 +55,7 @@ public:
 	virtual void UnPack(FileStream* f) = 0;
 };
 
-	- Pack 	  : Call 'f-> Pack (string field);' in the order that you want to put in the buffer.
+	- Pack 	  : Call 'f-> Pack (string field);' in the order that you want to put in at the buffer.
 	- UnPack  : Call 'f-> UnPack ();' in the order you want to import in the buffer.
 
 ---------------------------------------------------------------------------------------------------------------------------------

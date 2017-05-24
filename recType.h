@@ -10,7 +10,7 @@ public:
 	virtual void UnPack(FileStream* f) = 0;
 };
 
-	- Pack 	  : Call 'f-> Pack (string field);' in the order that you want to put in the buffer.
+	- Pack 	  : Call 'f-> Pack (string field);' in the order that you want to put in at the buffer.
 	- UnPack  : Call 'f-> UnPack ();' in the order you want to import in the buffer.
 */
 
